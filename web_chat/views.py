@@ -1,6 +1,7 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 
 # Create your views here.
+from django.contrib.auth.models import User
 from django.db.models import Count
 from django.http import Http404
 from django.shortcuts import render, redirect
@@ -109,7 +110,9 @@ class MessagesView(View):
 
 class CreateDialogView(LoginRequiredMixin, View):
     def get(self, request, user_id):
-        chats = Chat.objects.filter(members__in=[request.user.id, user_id])
+        print(f"users:{request.user.id} and {user_id}")
+        chats = Chat.objects.filter(members__in=[request.user.id]).filter(members__in=[user_id])
+        print(chats)
         if chats.count() == 0:
             chat = Chat.objects.create()
             chat.members.add(request.user)
@@ -122,11 +125,14 @@ class CreateDialogView(LoginRequiredMixin, View):
 class CreateChatView(LoginRequiredMixin, CreateView):  # new
     model = Chat
     template_name = 'create_chat.html'
-    possible_pen_friends = Chat.objects.all()
-    fields = ('members',)  # new
+    fields = ('members',)
 
     def form_valid(self, form):  # new
-        print(form)
+        print(form.data)
         form.instance.user = self.request.user
-        print(form.instance)
-        return super().form_valid(form)
+        return redirect(reverse('create_dialog', kwargs={'user_id': int(form.data['members'][0])}))
+
+    def get_form(self, form_class=None):
+        form = super(CreateChatView, self).get_form(form_class)
+        form.fields['members'].queryset = User.objects.exclude(id=self.request.user.id)
+        return form

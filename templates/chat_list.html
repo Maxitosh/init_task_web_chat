@@ -16,7 +16,6 @@
                 {% get_companion user chat as companion %}
                 <a class="list-group-item {% if companion == last_message.author and not last_message.is_read %}unread{% endif %}"
                    href="{{ chat.get_absolute_url }}">
-                    <img class="avatar-messages" src="{{ companion.userprofile.get_avatar }}">
                     <div class="reply-body">
                         <ul class="list-inline">
                             <li class="drop-left-padding">
