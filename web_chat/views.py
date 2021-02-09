@@ -14,8 +14,8 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from web_chat.forms import MessageForm
-from web_chat.models import Chat
-from web_chat.serializers import ChatSerializer
+from web_chat.models import Chat, Message
+from web_chat.serializers import ChatSerializer, MessageSerializer
 
 
 class HomePageView(LoginRequiredMixin, TemplateView):
@@ -58,9 +58,9 @@ class ChatListAPI(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class ChatDetail(APIView):
+class ChatDetailAPI(APIView):
     """
-    Retrieve, update or delete a snippet instance.
+    Retrieve, update or delete a chat instance.
     """
 
     def get_object(self, pk):
@@ -70,22 +70,42 @@ class ChatDetail(APIView):
             raise Http404
 
     def get(self, request, pk, format=None):
-        snippet = self.get_object(pk)
-        serializer = ChatSerializer(snippet)
+        chat = self.get_object(pk)
+        serializer = ChatSerializer(chat)
         return Response(serializer.data)
 
-    def put(self, request, pk, format=None):
-        snippet = self.get_object(pk)
-        serializer = ChatSerializer(snippet, data=request.data)
+
+class ChatMessagesAPI(APIView):
+    """
+    List all messages, or create a new message.
+    """
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_object(self, pk, user_id):
+        try:
+            # check if user has access to selected chat
+            chat = Chat.objects.filter(members__in=[user_id]).get(pk=pk)
+            return chat
+        except Chat.DoesNotExist:
+            raise Http404
+
+    # get messages from chat
+    def get(self, request, pk, format=None):
+        chat = self.get_object(pk, request.user.id)
+        messages = Message.objects.filter(chat_id=chat.id)
+        serializer = MessageSerializer(messages, many=True)
+        return Response(serializer.data)
+
+    # send message
+    def post(self, request, pk, format=None):
+        chat = self.get_object(pk, request.user.id)
+        request.data.update({"author_id": request.user.id, "chat_id": chat.id})
+        serializer = MessageSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    def delete(self, request, pk, format=None):
-        snippet = self.get_object(pk)
-        snippet.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class MessagesView(View):

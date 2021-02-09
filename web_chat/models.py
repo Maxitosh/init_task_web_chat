@@ -13,8 +13,6 @@ class Chat(models.Model):
         return f"dialogs/{self.pk}"
 
 
-
-
 class Message(models.Model):
     id = models.AutoField(primary_key=True)
     chat = models.ForeignKey(Chat, verbose_name="Чат", on_delete=models.CASCADE)
