@@ -9,6 +9,8 @@ from .models import Chat
 
 
 class ChatSerializer(serializers.ModelSerializer):
+    id = serializers.ReadOnlyField()
+
     class Meta:
         model = Chat
         fields = ['id', 'members']

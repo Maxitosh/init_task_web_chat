@@ -33,6 +33,7 @@ class ChatListAPI(APIView):
     """
     List all chats, or create a new chat.
     """
+    permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request, format=None):
         chats = Chat.objects.all().filter(members=request.user)
@@ -41,9 +42,19 @@ class ChatListAPI(APIView):
 
     def post(self, request, format=None):
         serializer = ChatSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+        if serializer.is_valid() and len(serializer.validated_data['members']) == 2 and request.user in \
+                serializer.validated_data['members']:
+
+            if Chat.objects.filter(members=serializer.validated_data['members'][0]).filter(
+                    members=serializer.validated_data['members'][1]).count() == 0:
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            else:
+                existing_chat = Chat.objects.filter(members=serializer.validated_data['members'][0]).filter(
+                    members=serializer.validated_data['members'][1]).first()
+
+                return Response({"id": existing_chat.id}, status=status.HTTP_406_NOT_ACCEPTABLE)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
