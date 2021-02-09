@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'web_chat.apps.WebChatConfig',
     'accounts.apps.AccountsConfig',
+    'bootstrap3',
     'crispy_forms'
 ]
 
