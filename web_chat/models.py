@@ -13,10 +13,12 @@ class Chat(models.Model):
         return f"dialogs/{self.pk}"
 
 
+
+
 class Message(models.Model):
     id = models.AutoField(primary_key=True)
-    chat = models.ForeignKey(Chat, verbose_name="Чат", on_delete=models.DO_NOTHING)
-    author = models.ForeignKey(User, verbose_name="Пользователь", on_delete=models.DO_NOTHING)
+    chat = models.ForeignKey(Chat, verbose_name="Чат", on_delete=models.CASCADE)
+    author = models.ForeignKey(User, verbose_name="Пользователь", on_delete=models.CASCADE)
     message = models.TextField()
     pub_date = models.DateTimeField(default=timezone.now)
     is_read = models.BooleanField(default=False)

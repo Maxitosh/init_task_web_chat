@@ -1,12 +1,13 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 
 # Create your views here.
+from django.db.models import Count
 from django.http import Http404
 from django.shortcuts import render, redirect
 from django.template.defaulttags import register
 from django.urls import reverse
 from django.views import View
-from django.views.generic import TemplateView, ListView
+from django.views.generic import TemplateView, ListView, CreateView
 from rest_framework import status, generics, permissions
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -104,3 +105,28 @@ class MessagesView(View):
             message.author = request.user
             message.save()
         return redirect(reverse('messages', kwargs={'chat_id': chat_id}))
+
+
+class CreateDialogView(LoginRequiredMixin, View):
+    def get(self, request, user_id):
+        chats = Chat.objects.filter(members__in=[request.user.id, user_id])
+        if chats.count() == 0:
+            chat = Chat.objects.create()
+            chat.members.add(request.user)
+            chat.members.add(user_id)
+        else:
+            chat = chats.first()
+        return redirect(reverse('messages', kwargs={'chat_id': chat.id}))
+
+
+class CreateChatView(LoginRequiredMixin, CreateView):  # new
+    model = Chat
+    template_name = 'create_chat.html'
+    possible_pen_friends = Chat.objects.all()
+    fields = ('members',)  # new
+
+    def form_valid(self, form):  # new
+        print(form)
+        form.instance.user = self.request.user
+        print(form.instance)
+        return super().form_valid(form)
