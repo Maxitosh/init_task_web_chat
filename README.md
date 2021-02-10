@@ -152,7 +152,7 @@ curl -u Test3:testpass123 http://localhost:8000/chats/
       "id": 1,
       "members": [
          1,
-         5
+         2
       ]
    }
 ]
@@ -202,10 +202,14 @@ curl --data '{"message":"Test from console"}' -H "Content-Type: application/json
 Получение списка сообщений конкретного чата. Функция доступна только для авторизованных пользователей, существующие
 логин и пароль пользователя должны быть переданы в запросе к серверу.
 
+| Parameters | Required | Type | Description |
+| -------- | -------- | -------- |  -------- |
+| chat_id     | :heavy_check_mark:     | Integer     | id чата, должен быть указан в url запроса chats/[ID]/messages/|
+
 #### CURL
 
 ```console
-curl -u Test3:testpass123 http://localhost:8000/chats/23/messages/
+curl -u Test3:testpass123 http://localhost:8000/chats/1/messages/
 ```
 
 #### Пример ответа
