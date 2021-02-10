@@ -1,8 +1,15 @@
 from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
-from rest_framework.validators import UniqueValidator
 
+
+class UserSerializer(serializers.ModelSerializer):
+    id = serializers.ReadOnlyField()
+    username = serializers.CharField()
+
+    class Meta:
+        model = User
+        fields = ['id', 'username']
 
 class RegisterSerializer(serializers.ModelSerializer):
     id = serializers.ReadOnlyField()
