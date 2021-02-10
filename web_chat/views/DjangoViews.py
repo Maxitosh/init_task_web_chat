@@ -1,80 +1,18 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
-
-# Create your views here.
 from django.contrib.auth.models import User
-from django.db.models import Count
-from django.http import Http404
 from django.shortcuts import render, redirect
-from django.template.defaulttags import register
 from django.urls import reverse
 from django.views import View
-from django.views.generic import TemplateView, ListView, CreateView
-from rest_framework import status, generics, permissions
-from rest_framework.response import Response
-from rest_framework.views import APIView
+from django.views.generic import CreateView
 
 from web_chat.forms import MessageForm
 from web_chat.models import Chat
-from web_chat.serializers import ChatSerializer
-
-
-class HomePageView(LoginRequiredMixin, TemplateView):
-    template_name = 'home.html'
-    login_url = 'login'
 
 
 class DialogsView(View):
     def get(self, request):
         chats = Chat.objects.filter(members__in=[request.user.id])
         return render(request, 'chat_list.html', {'user_profile': request.user, 'chats': chats})
-
-
-class ChatListAPI(APIView):
-    """
-    List all chats, or create a new chat.
-    """
-
-    def get(self, request, format=None):
-        chats = Chat.objects.all().filter(members=request.user)
-        serializer = ChatSerializer(chats, many=True)
-        return Response(serializer.data)
-
-    def post(self, request, format=None):
-        serializer = ChatSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-class ChatDetail(APIView):
-    """
-    Retrieve, update or delete a snippet instance.
-    """
-
-    def get_object(self, pk):
-        try:
-            return Chat.objects.get(pk=pk)
-        except Chat.DoesNotExist:
-            raise Http404
-
-    def get(self, request, pk, format=None):
-        snippet = self.get_object(pk)
-        serializer = ChatSerializer(snippet)
-        return Response(serializer.data)
-
-    def put(self, request, pk, format=None):
-        snippet = self.get_object(pk)
-        serializer = ChatSerializer(snippet, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    def delete(self, request, pk, format=None):
-        snippet = self.get_object(pk)
-        snippet.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class MessagesView(View):

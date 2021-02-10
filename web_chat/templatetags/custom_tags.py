@@ -9,9 +9,3 @@ def get_companion(user, chat):
         if u != user:
             return u
     return None
-
-
-@register.simple_tag
-def home_url():
-    user_url = "/"
-    return user_url
