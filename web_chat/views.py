@@ -19,10 +19,6 @@ from web_chat.models import Chat, Message
 from web_chat.serializers import ChatSerializer, MessageSerializer
 
 
-class HomePageView(LoginRequiredMixin, TemplateView):
-    template_name = 'home.html'
-    login_url = 'login'
-
 
 class DialogsView(View):
     def get(self, request):
