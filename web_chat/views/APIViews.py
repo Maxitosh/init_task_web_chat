@@ -13,6 +13,7 @@ class ChatListAPI(APIView):
     """
     permission_classes = [permissions.IsAuthenticated]
 
+    # filter chats by requesting user, measure of security
     def get(self, request, format=None):
         chats = Chat.objects.all().filter(members=request.user)
         serializer = ChatSerializer(chats, many=True)
@@ -21,9 +22,11 @@ class ChatListAPI(APIView):
     def post(self, request, format=None):
         serializer = ChatSerializer(data=request.data)
 
+        # check if number of members is 2 and user included himself to new chat
         if serializer.is_valid() and len(serializer.validated_data['members']) == 2 and request.user in \
                 serializer.validated_data['members']:
 
+            # check if such chat already exists, otherwise return chat_id
             if Chat.objects.filter(members=serializer.validated_data['members'][0]).filter(
                     members=serializer.validated_data['members'][1]).count() == 0:
                 serializer.save()
@@ -47,6 +50,7 @@ class ChatDetailAPI(APIView):
         except Chat.DoesNotExist:
             raise Http404
 
+    # get chat details, members list
     def get(self, request, pk, format=None):
         chat = self.get_object(pk)
         serializer = ChatSerializer(chat)
@@ -64,17 +68,18 @@ class ChatMessagesAPI(APIView):
             # check if user has access to selected chat
             chat = Chat.objects.filter(members__in=[user_id]).get(pk=pk)
             return chat
+        # return 404 error, instead of 403, to provide secure measures, not to reveal existing chat_id
         except Chat.DoesNotExist:
             raise Http404
 
-    # get messages from chat
+    # get messages from chat of requesting user
     def get(self, request, pk, format=None):
         chat = self.get_object(pk, request.user.id)
         messages = Message.objects.filter(chat_id=chat.id)
         serializer = MessageSerializer(messages, many=True)
         return Response(serializer.data)
 
-    # send message
+    # send message to chat from user
     def post(self, request, pk, format=None):
         chat = self.get_object(pk, request.user.id)
         request.data.update({"author_id": request.user.id, "chat_id": chat.id})
