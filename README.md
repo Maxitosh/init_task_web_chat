@@ -276,6 +276,10 @@ curl -u Test3:testpass123 http://localhost:8000/chats/1/messages/
 
 ![](https://i.imgur.com/eruXL5m.png)
 
+#### Новый чат
+
+![](https://i.imgur.com/dJexRkR.png)
+
 #### Новое сообщение
 
 ![](https://i.imgur.com/NJANDO4.png)
